@@ -26,10 +26,10 @@ const ContactPage = () => {
 
 
                     <form onSubmit={hndSubmit} className='flex flex-col'>
-                        <input type='text' placeholder='Name' className='border border-solid border-gray-400 mb-8 h-12 pl-4'></input>
-                        <input type='number' placeholder='Mobile' className='border border-solid border-gray-400 mb-8 h-12 pl-4'></input>
-                        <input type='email' placeholder='Email' className='border border-solid border-gray-400 mb-8 h-12 pl-4'></input>
-                        <textarea placeholder='Message' className='border border-solid border-gray-400 mb-8 pl-4'></textarea>
+                        <input type='text' placeholder='Name' className='border border-solid border-gray-400 mb-8 h-12 pl-4 rounded'></input>
+                        <input type='number' placeholder='Mobile' className='border border-solid border-gray-400 mb-8 h-12 pl-4 rounded'></input>
+                        <input type='email' placeholder='Email' className='border border-solid border-gray-400 mb-8 h-12 pl-4 rounded'></input>
+                        <textarea placeholder='Message' className='border border-solid border-gray-400 mb-8 pl-4 rounded'></textarea>
                         <button type='submit' className='bg-blue-300 text-xl font-semibold h-12 rounded'>Submit</button>
                     </form>
                 </div>

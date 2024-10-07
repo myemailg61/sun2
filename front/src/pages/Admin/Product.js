@@ -1,19 +1,31 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios'
 
 const Product = () => {
     const [currentStep, setCurrentStep] = useState(1);
+    const [prodImg, setProdImg] = useState()
     const [formData, setFormData] = useState({
         productName: '',
         productCategory: '',
         productSubCategory1: '',
         productSubCategory2: '',
         price: '',
+        manufacturerName: '',
         description: '',
         quantity: '',
         gst: '',
         minPurchase: '',
         documentLinks: [''], // Initialize with one empty link field
-        location: ''
+        location: '',
+        shipping: "No",
+        weight: "",
+        dimensions: {
+            length: '',
+            breadth: '',
+            height: '',
+        },
+        faq: [{ question: '', answer: '' }],
+
     });
     const [errors, setErrors] = useState({});
 
@@ -24,7 +36,50 @@ const Product = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
+        if (['length', 'breadth', 'height'].includes(name)) {
+            setFormData((prevFormData) => ({
+                ...prevFormData,
+                dimensions: {
+                    ...prevFormData.dimensions,
+                    [name]: value,
+                },
+            }));
+        } else {
+            setFormData((prevFormData) => ({
+                ...prevFormData,
+                [name]: value,
+            }));
+        }
+    };
+
+    const handleFAQchange = (index, event) => {
+        const { name, value } = event.target
+
+        const newFAQs = [...formData.faq]
+        newFAQs[index][name] = value;
+        setFormData({ ...formData, faq: newFAQs })
+    }
+
+    const productImageHnd = (e) => {
+        setProdImg(e.target.files)
+    }
+
+    // Function to add a new FAQ item
+    const addFaq = () => {
+        const newFaq = [...formData.faq, { question: '', answer: '' }]
+        setFormData({ ...formData, faq: newFaq });
+    };
+
+    // Function to remove a FAQ item
+    const removeFaq = (index) => {
+        const newFaqs = formData.faq.filter((_, i) => i !== index);
+        setFormData({ ...formData, faq: newFaqs })
+    };
+
+    const handleChange2 = (val) => {
+        let name = "shipping"
+
+        setFormData({ ...formData, [name]: val });
     };
 
     const handleLinkChange = (index, e) => {
@@ -68,6 +123,10 @@ const Product = () => {
                     newErrors.price = 'Valid Price is required';
                     isValid = false;
                 }
+                if (!formData.manufacturerName.trim()) {
+                    newErrors.manufacturerName = 'Valid manufacturer Name is required';
+                    isValid = false;
+                }
                 if (formData.documentLinks.some(link => !link.trim())) {
                     newErrors.documentLinks = 'All document links must be filled out';
                     isValid = false;
@@ -84,6 +143,14 @@ const Product = () => {
                 }
                 if (!formData.location.trim()) {
                     newErrors.location = 'Location is required';
+                    isValid = false;
+                }
+                if (!formData.weight.trim()) {
+                    newErrors.weight = 'Weight is required';
+                    isValid = false;
+                }
+                if (!formData.dimensions.length.trim() || !formData.dimensions.breadth.trim() || !formData.dimensions.height.trim()) {
+                    newErrors.dimension = 'dimension is required';
                     isValid = false;
                 }
                 break;
@@ -117,10 +184,48 @@ const Product = () => {
         }
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (validateStep()) {
-            // Submit form data
-            console.log('Form Data Submitted:', formData);
+            const formdata = new FormData()
+            formdata.append('productName', formData.productName)
+            formdata.append('productCategory', formData.productCategory)
+            formdata.append('productSubCategory1', formData.productSubCategory1)
+            formdata.append('productSubCategory2', formData.productSubCategory2)
+            formdata.append('price', formData.price)
+            formdata.append('manufacturerName', formData.manufacturerName)
+            formdata.append('description', formData.description)
+            formdata.append('quantity', formData.quantity)
+            formdata.append('gst', formData.gst)
+            formdata.append('minPurchase', formData.minPurchase)
+            formdata.append('documentLinks', formData.documentLinks)
+            formdata.append('location', formData.location)
+            formdata.append('shipping', formData.shipping)
+            formdata.append('weight', formData.weight)
+            //formdata.append('dimensions', formData.dimensions)
+            // Append each property of the dimensions object
+            Object.entries(formData.dimensions).forEach(([key, value]) => {
+                formdata.append(`dimensions[${key}]`, value);
+            });
+            // formdata.append('faq', formData.faq)
+            formData.faq.forEach((faq, index) => {
+                formdata.append(`faqs[${index}][question]`, faq.question);
+                formdata.append(`faqs[${index}][answer]`, faq.answer);
+            });
+            for (let i = 0; i < prodImg.length; i++) {
+                formdata.append('prodImg', prodImg[i]);
+            }
+            try {
+                const res = await axios.post('http://localhost:8000/admin/newProduct', formdata)
+                if (res.status === 201) {
+                    alert("Product added Successfully")
+                }
+            } catch (err) {
+
+                alert("Network Issue. Please try again")
+
+                console.log(err)
+            }
+
         }
     };
 
@@ -204,6 +309,20 @@ const Product = () => {
                             {errors.price && <p id="priceError" className="text-red-500 text-sm">{errors.price}</p>}
                         </div>
                         <div className="flex flex-col">
+                            <label className="font-semibold mb-1" htmlFor="manufacturerName">Manufacturer Name</label>
+                            <input
+                                id="manufacturerName"
+                                type="text"
+                                name="manufacturerName"
+                                value={formData.manufacturerName}
+                                onChange={handleChange}
+                                className="p-2 border border-gray-300 rounded"
+                                placeholder="Manufacturer Name"
+                                aria-describedby="manufacturerNameError"
+                            />
+                            {errors.manufacturerName && <p id="manufacturerName" className="text-red-500 text-sm">{errors.manufacturerName}</p>}
+                        </div>
+                        <div className="flex flex-col">
                             <label className="font-semibold mb-1">Document Links</label>
                             {formData.documentLinks.map((link, index) => (
                                 <div key={index} className="flex items-center mb-2">
@@ -281,11 +400,64 @@ const Product = () => {
                         <div className="flex flex-col">
                             <label className="font-semibold mb-1" htmlFor="shipping">Shipping Required</label>
                             <div className='flex flex-row gap-8'>
-                                <button className='bg-sky-100 px-5 rounded py-2'>Yes</button>
-                                <button className='bg-sky-100 px-5 rounded py-2'>No</button>
+                                <button onClick={() => { handleChange2("Yes") }} className={`${formData.shipping == "Yes" ? "bg-teal-500" : "bg-teal-200"} px-5 rounded py-2`}>Yes</button>
+                                <button onClick={() => { handleChange2("No") }} className={` px-5  ${formData.shipping == "No" ? "bg-teal-500" : "bg-teal-200"} rounded py-2`}>No</button>
                             </div>
                             {errors.location && <p id="locationError" className="text-red-500 text-sm">{errors.location}</p>}
                         </div>
+
+                        <div className="flex flex-col">
+                            <label className="font-semibold mb-1" htmlFor="weight">Product Weight in grams</label>
+                            <input
+                                id="weight"
+                                type="number"
+                                name="weight"
+                                value={formData.weight}
+                                onChange={handleChange}
+                                className="p-2 border border-gray-300 rounded"
+                                placeholder="Weight in grams"
+                                aria-describedby="weightError"
+                            />
+                            {errors.weight && <p id="weightError" className="text-red-500 text-sm">{errors.weight}</p>}
+                        </div>
+
+                        <div className="flex flex-col">
+                            <label className="font-semibold mb-1" htmlFor="dimension">Product Dimensions</label>
+                            <div className='flex flex-row gap-4'>
+                                <input
+                                    id="length"
+                                    type="number"
+                                    name="length"
+                                    value={formData.dimensions.length}
+                                    onChange={handleChange}
+                                    className="p-2 border border-gray-300 rounded"
+                                    placeholder="length in mm"
+                                    aria-describedby="dimensionError"
+                                />
+                                <input
+                                    id="breadth"
+                                    type="number"
+                                    name="breadth"
+                                    value={formData.dimensions.breadth}
+                                    onChange={handleChange}
+                                    className="p-2 border border-gray-300 rounded"
+                                    placeholder="breadth in mm"
+                                    aria-describedby="dimensionError"
+                                />
+                                <input
+                                    id="height"
+                                    type="number"
+                                    name="height"
+                                    value={formData.dimensions.height}
+                                    onChange={handleChange}
+                                    className="p-2 border border-gray-300 rounded"
+                                    placeholder="height in mm"
+                                    aria-describedby="dimensionError"
+                                />
+                            </div>
+                            {errors.dimension && <p id="dimensionError" className="text-red-500 text-sm">{errors.dimension}</p>}
+                        </div>
+
                     </div>
                 );
             case 3:
@@ -318,6 +490,63 @@ const Product = () => {
                                 aria-describedby="minPurchaseError"
                             />
                             {errors.minPurchase && <p id="minPurchaseError" className="text-red-500 text-sm">{errors.minPurchase}</p>}
+                        </div>
+
+                        {/* product img */}
+
+                        <div className="flex flex-col">
+                            <label className="font-semibold mb-1" htmlFor="productImage">Add Product Images</label>
+                            <input
+                                onChange={productImageHnd}
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                name="prodImg"
+                            />
+                            {errors.minPurchase && <p id="minPurchaseError" className="text-red-500 text-sm">{errors.minPurchase}</p>}
+                        </div>
+
+                        {/* faqs */}
+
+                        <div>
+                            <label className="font-semibold mb-1" htmlFor="minPurchase">FAQs for Product</label>
+                            {formData.faq.map((faq, index) => {
+                                return <div key={index} className="space-y-2 flex flex-col md:flex-row items-start md:items-center md:space-y-2 md:space-x-4">
+                                    <input
+                                        type="text"
+                                        name="question"
+                                        placeholder="Question"
+                                        value={faq.question}
+                                        onChange={(event) => handleFAQchange(index, event)}
+                                        className="flex-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    />
+                                    <input
+                                        type="text"
+                                        name="answer"
+                                        placeholder="Answer"
+                                        value={faq.answer}
+                                        onChange={(event) => handleFAQchange(index, event)}
+                                        className="flex-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    />
+                                    {formData.faq.length > 1 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => removeFaq(index)}
+                                            className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                        >
+                                            Remove
+                                        </button>
+
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={addFaq}
+                                        className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    >
+                                        Add FAQ
+                                    </button>
+                                </div>
+                            })}
                         </div>
                     </div>
                 );

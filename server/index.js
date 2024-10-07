@@ -1,14 +1,31 @@
 const PORT = process.env.PORT || 8000
+
+import userRoutes from './routes/user.js'
+import adminRoutes from './routes/admin.js'
+
 import express from 'express'
 import cors from 'cors'
 import mysql from 'mysql'
 import { v4 as uuidv4 } from 'uuid';
 import jwt from 'jsonwebtoken'
+import bodyParser from 'body-parser'
 import path from 'path'
 import multer from 'multer'
 
 const app = express()
 app.use(express.json())
+app.use(bodyParser.json());
+app.use("/banner", express.static("banner"))
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'banner/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.fieldname + "_" + Date.now() + path.extname(file.originalname));
+    },
+});
+const upload = multer({ storage: storage });
 
 app.use(cors({
     origin: ["http://localhost:3000"],
@@ -24,6 +41,13 @@ const db = mysql.createConnection({
     password: "",
     database: "sun"
 })
+
+
+//user apis
+app.use('/user', userRoutes)
+
+//admin apis
+app.use('/admin', adminRoutes)
 
 //login
 app.post("/login", (req, res) => {
@@ -85,7 +109,14 @@ app.post("/signup", (req, res) => {
         }
     })
 
-})
+});
+
+app.post('/faqs', upload.fields([{ name: 'prodImg', maxCount: 15 }]), (req, res) => {
+    const faqs = req.body.faqs; // Retrieve FAQs from the request body
+    //console.log('Received FAQs:', faqs);
+    console.log('Received FAQs:', JSON.stringify(faqs, null, 2));
+    res.status(200).send({ message: 'FAQs received successfully!' });
+});
 
 
 

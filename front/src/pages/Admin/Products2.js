@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 const Products2 = () => {
     const [faqs, setFaqs] = useState([{ question: '', answer: '' }]);
@@ -22,14 +23,32 @@ const Products2 = () => {
         setFaqs(newFaqs);
     };
 
-    // Function to handle form submission (optional)
-    const handleSubmit = (event) => {
+    // Function to handle form submission
+    const handleSubmit = async (event) => {
         event.preventDefault();
-        console.log('FAQs submitted:', faqs);
+
+        // Create a FormData object
+        const formData = new FormData();
+
+        faqs.forEach((faq, index) => {
+            formData.append(`faqs[${index}][question]`, faq.question);
+            formData.append(`faqs[${index}][answer]`, faq.answer);
+        });
+
+        try {
+            const response = await axios.post('http://localhost:8000/faqs', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            console.log(response.data.message);
+        } catch (error) {
+            console.error('Error submitting FAQs:', error);
+        }
     };
 
     return (
-        <div className="max-w-2xl mx-auto p-4">
+        <div className="max-w-2xl mx-auto p-4 mt-32">
             <form onSubmit={handleSubmit} className="space-y-4">
                 {faqs.map((faq, index) => (
                     <div key={index} className="flex flex-col md:flex-row items-start md:items-center space-y-2 md:space-y-0 md:space-x-4">
