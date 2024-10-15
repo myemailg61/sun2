@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Product from './Product';
 import AdminBanner from './AdminBanner';
+import ProductsList from './ProductsList';
 
 const Dashboard = () => {
     const [dummy, setDummy] = useState(false)
@@ -45,6 +46,7 @@ const Dashboard = () => {
                 <div className='w-9/12'>
                     {option == "add" && <Product></Product>}
                     {option == "banner" && <AdminBanner></AdminBanner>}
+                    {option == "list" && <ProductsList></ProductsList>}
                 </div>
             </div>
         </div>

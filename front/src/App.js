@@ -6,9 +6,13 @@ import HomePage from './components/pages/HomePage'
 import AboutPage from './components/pages/AboutPage';
 import ContactPage from './components/pages/ContactPage';
 import Login from './components/signup/Login';
+import CategoryProducts from './components/pages/CategoryProducts';
+import SubCategoryProduct from './components/pages/SubCategoryProduct';
+
 import Product from './pages/Admin/Product';
 import ProductsList from './pages/Admin/ProductsList';
 import Products2 from './pages/Admin/Products2';
+import ProductDetails from './components/pages/ProductDetails';
 
 import Dashboard from './pages/Admin/Dashboard';
 
@@ -22,6 +26,9 @@ const router = createBrowserRouter([{
     { path: "/login", element: <Login></Login> },
     { path: "/product", element: <Product></Product> },
     { path: "/contact", element: <ContactPage></ContactPage> },
+    { path: "/categoryProduct", element: <CategoryProducts></CategoryProducts> },
+    { path: "/subCategoryProduct", element: <SubCategoryProduct></SubCategoryProduct> },
+    { path: "/details/:id", element: <ProductDetails></ProductDetails> },
 
 
     { path: "/adminDashboard", element: <Dashboard></Dashboard> },

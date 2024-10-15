@@ -13,9 +13,9 @@ const Footer = () => {
             </div>
             <div className='w-2/12 '>
                 <p className=' text-xl font-medium'>Quick Links</p>
-                <Link></Link><p className=' mt-2 text-base font-font1'>Home</p>
-                <Link><p className=' mt-2 text-base font-font1'>About Us</p></Link>
-                <Link><p className=' mt-2 text-base font-font1'>Contact Us</p></Link>
+                <Link to='/'><p className=' mt-2 text-base font-font1'>Home</p></Link>
+                <Link to='/about'><p className=' mt-2 text-base font-font1'>About Us</p></Link>
+                <Link to='/contact'><p className=' mt-2 text-base font-font1'>Contact Us</p></Link>
                 <Link to='/adminDashboard'><p className=' mt-2 text-base font-font1'>Dashboard</p></Link>
 
             </div>

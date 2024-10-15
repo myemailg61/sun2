@@ -43,10 +43,11 @@ const db = mysql.createConnection({
 })
 
 
-//user apis
+///////////////user apis////////////////
 app.use('/user', userRoutes)
 
-//admin apis
+
+/////////////admin apis///////////////////
 app.use('/admin', adminRoutes)
 
 //login

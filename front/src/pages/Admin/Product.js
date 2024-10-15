@@ -25,6 +25,7 @@ const Product = () => {
             height: '',
         },
         faq: [{ question: '', answer: '' }],
+        options: [{ name: '', quantity: '', stock: '', price: '', weight: '' }],
 
     });
     const [errors, setErrors] = useState({});
@@ -59,6 +60,24 @@ const Product = () => {
         newFAQs[index][name] = value;
         setFormData({ ...formData, faq: newFAQs })
     }
+
+    const handleOptionChange = (index, event) => {
+        const { name, value } = event.target
+
+        const newoptions = [...formData.options]
+        newoptions[index][name] = value;
+        setFormData({ ...formData, options: newoptions })
+    }
+
+    const addProduct = () => {
+        const newOptions = [...formData.options, { name: '', quantity: '', stock: '', price: '', weight: '' }]
+        setFormData({ ...formData, options: newOptions })
+    };
+
+    const removeProduct = (index) => {
+        const newOptions = formData.options.filter((_, i) => i !== index);
+        setFormData({ ...formData, options: newOptions });
+    };
 
     const productImageHnd = (e) => {
         setProdImg(e.target.files)
@@ -163,6 +182,40 @@ const Product = () => {
                     newErrors.minPurchase = 'Valid Minimum Purchase is required';
                     isValid = false;
                 }
+                formData.faq.forEach((item, index) => {
+                    if (!item.question.trim()) {
+                        newErrors[`faq_${index}_question`] = `Question is required for FAQ entry ${index + 1}`;
+                        isValid = false;
+                    }
+                    if (!item.answer.trim()) {
+                        newErrors[`faq_${index}_answer`] = `Answer is required for FAQ entry ${index + 1}`;
+                        isValid = false;
+                    }
+                });
+                break;
+            case 4:
+                formData.options.forEach((option, index) => {
+                    if (!option.name.trim()) {
+                        newErrors[`option_${index}_name`] = `Name is required for option entry ${index + 1}`;
+                        isValid = false;
+                    }
+                    if (!option.quantity || isNaN(option.quantity) || option.quantity < 0) {
+                        newErrors[`option_${index}_quantity`] = `Valid quantity is required for option entry ${index + 1}`;
+                        isValid = false;
+                    }
+                    if (!option.stock || isNaN(option.stock) || option.stock < 0) {
+                        newErrors[`option_${index}_stock`] = `Valid stock is required for option entry ${index + 1}`;
+                        isValid = false;
+                    }
+                    if (!option.price || isNaN(option.price) || option.price <= 0) {
+                        newErrors[`option_${index}_price`] = `Valid price is required for option entry ${index + 1}`;
+                        isValid = false;
+                    }
+                    if (!option.weight || isNaN(option.weight) || option.weight < 0) {
+                        newErrors[`option_${index}_weight`] = `Valid weight is required for option entry ${index + 1}`;
+                        isValid = false;
+                    }
+                });
                 break;
             default:
                 break;
@@ -211,15 +264,29 @@ const Product = () => {
                 formdata.append(`faqs[${index}][question]`, faq.question);
                 formdata.append(`faqs[${index}][answer]`, faq.answer);
             });
+            formData.options.forEach((option, index) => {
+                formdata.append(`options[${index}][name]`, option.name);
+                formdata.append(`options[${index}][quantity]`, option.quantity);
+                formdata.append(`options[${index}][stock]`, option.stock);
+                formdata.append(`options[${index}][price]`, option.price);
+                formdata.append(`options[${index}][weight]`, option.weight);
+            });
+            //            
             for (let i = 0; i < prodImg.length; i++) {
                 formdata.append('prodImg', prodImg[i]);
             }
+
+
             try {
                 const res = await axios.post('http://localhost:8000/admin/newProduct', formdata)
                 if (res.status === 201) {
                     alert("Product added Successfully")
                 }
+                if (res.status === 400) {
+                    alert("Missing required fields")
+                }
             } catch (err) {
+
 
                 alert("Network Issue. Please try again")
 
@@ -520,6 +587,9 @@ const Product = () => {
                                         onChange={(event) => handleFAQchange(index, event)}
                                         className="flex-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                     />
+                                    {errors[`faq_${index}_question`] && (
+                                        <p className="text-red-500 text-sm">{errors[`faq_${index}_question`]}</p>
+                                    )}
                                     <input
                                         type="text"
                                         name="answer"
@@ -528,6 +598,9 @@ const Product = () => {
                                         onChange={(event) => handleFAQchange(index, event)}
                                         className="flex-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                     />
+                                    {errors[`faq_${index}_question`] && (
+                                        <p className="text-red-500 text-sm">{errors[`faq_${index}_question`]}</p>
+                                    )}
                                     {formData.faq.length > 1 && (
                                         <button
                                             type="button"
@@ -550,6 +623,75 @@ const Product = () => {
                         </div>
                     </div>
                 );
+            // options
+            case 4:
+                return (
+                    <div>
+                        <label className="font-semibold mb-1" htmlFor="minPurchase">FAQs for Product</label>
+
+                        {formData.options.map((product, index) => (
+                            <div key={index} className="space-y-2 flex flex-col md:flex-row items-start md:items-center md:space-y-2 md:space-x-2">
+                                <input
+                                    type="text"
+                                    name="name"
+                                    placeholder="Product Name"
+                                    value={product.name}
+                                    onChange={(event) => handleOptionChange(index, event)}
+                                    className="flex-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                                {errors[`option_${index}_name`] && (
+                                    <p className="text-red-500 text-sm">{errors[`option_${index}_name`]}</p>
+                                )}
+                                <input
+                                    type="number"
+                                    name="quantity"
+                                    placeholder="Quantity"
+                                    value={product.quantity}
+                                    onChange={(event) => handleOptionChange(index, event)}
+                                    className="flex-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                                {errors[`option_${index}_name`] && (
+                                    <p className="text-red-500 text-sm">{errors[`option_${index}_name`]}</p>
+                                )}
+                                <input
+                                    type="number"
+                                    name="stock"
+                                    placeholder="Stock"
+                                    value={product.stock}
+                                    onChange={(event) => handleOptionChange(index, event)}
+                                    className="flex-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                                {errors[`option_${index}_name`] && (
+                                    <p className="text-red-500 text-sm">{errors[`option_${index}_name`]}</p>
+                                )}
+                                <input
+                                    type="number"
+                                    name="price"
+                                    placeholder="Price"
+                                    value={product.price}
+                                    onChange={(event) => handleOptionChange(index, event)}
+                                    className="flex-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                                {errors[`option_${index}_name`] && (
+                                    <p className="text-red-500 text-sm">{errors[`option_${index}_name`]}</p>
+                                )}
+                                <input
+                                    type="number"
+                                    name="weight"
+                                    placeholder="Weight"
+                                    value={product.weight}
+                                    onChange={(event) => handleOptionChange(index, event)}
+                                    className="flex-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                                {errors[`option_${index}_name`] && (
+                                    <p className="text-red-500 text-sm">{errors[`option_${index}_name`]}</p>
+                                )}
+                                <button type="button" onClick={() => removeProduct(index)} className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500">Remove</button>
+                            </div>
+                        ))}
+                        <button type="button" onClick={addProduct} className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500">Add Option</button>
+                    </div>
+                )
             default:
                 return null;
         }
@@ -573,6 +715,7 @@ const Product = () => {
                 >
                     Main Information
                 </button>
+
                 <button
                     type="button"
                     onClick={() => handleStepChange(3)}
@@ -580,9 +723,16 @@ const Product = () => {
                 >
                     Links
                 </button>
+                <button
+                    type="button"
+                    onClick={() => handleStepChange(4)}
+                    className={`px-4 py-2 rounded ${currentStep === 2 ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-700'}`}
+                >
+                    Options
+                </button>
             </div>
             {renderStep()}
-            {currentStep < 3 && (
+            {currentStep < 4 && (
                 <div className="flex justify-center mt-6">
                     <button
                         type="button"
@@ -593,7 +743,7 @@ const Product = () => {
                     </button>
                 </div>
             )}
-            {currentStep === 3 && (
+            {currentStep === 4 && (
                 <div className="flex justify-center mt-6">
                     <button
                         type="button"
